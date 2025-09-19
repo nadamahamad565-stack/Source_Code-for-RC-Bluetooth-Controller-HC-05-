@@ -1,0 +1,65 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial BT(2, 3); // TX,RX للبلوتوث HC-05
+
+// جويستيك 1
+int joyX1 = A0; // Yaw
+int joyY1 = A1; // Throttle
+
+// جويستيك 2
+int joyX2 = A2; // Roll
+int joyY2 = A3; // Pitch
+
+// الأزرار
+int startButton = 4;
+int landButton = 5;
+
+void setup() {
+  pinMode(startButton, INPUT_PULLUP);
+  pinMode(landButton, INPUT_PULLUP);
+
+  BT.begin(9600);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // قراءة الأزرار
+  if (digitalRead(startButton) == LOW) {
+    BT.println("START");
+    Serial.println("START");
+    delay(300);
+  }
+
+  if (digitalRead(landButton) == LOW) {
+    BT.println("LAND");
+    Serial.println("LAND");
+    delay(300);
+  }
+
+  // قراءة الجويستيك
+  int yawRaw      = analogRead(joyX1);
+  int throttleRaw = analogRead(joyY1);
+  int rollRaw     = analogRead(joyX2);
+  int pitchRaw    = analogRead(joyY2);
+
+  // تحويل القيم للنطاق المطلوب
+  int yaw      = map(yawRaw, 0, 1023, -180, 180);   // دوران
+  int throttle = map(throttleRaw, 0, 1023, 0, 100); // قوة دفع
+  int roll     = map(rollRaw, 0, 1023, -45, 45);    // إمالة يمين/يسار
+  int pitch    = map(pitchRaw, 0, 1023, -45, 45);   // إمالة أمام/خلف
+
+  // إرسال البيانات بشكل منظم
+  BT.print("CTRL:");
+  BT.print(yaw); BT.print(",");
+  BT.print(throttle); BT.print(",");
+  BT.print(roll); BT.print(",");
+  BT.println(pitch);
+
+  Serial.print("CTRL:");
+  Serial.print(yaw); Serial.print(",");
+  Serial.print(throttle); Serial.print(",");
+  Serial.print(roll); Serial.print(",");
+  Serial.println(pitch);
+
+  delay(100); // تحديث كل 0.1 ثانية
+}
